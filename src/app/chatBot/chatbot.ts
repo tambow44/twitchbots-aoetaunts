@@ -3,7 +3,6 @@ import { TwitchTokenDetails } from './../models/twitchTokenDetails.models';
 import { TwitchTokenResponseValidator } from './../utils/TwitchTokenResponseValidator';
 import { MalformedTwitchRequestError, NoTwitchResponseError, TwitchResponseError } from '../models/error.model';
 
-
 export class TwitchChatBot {
 
     tmi = require('tmi.js');
@@ -11,7 +10,7 @@ export class TwitchChatBot {
     public twitchClient: any;
     private tokenDetails!: TwitchTokenDetails;
 
-    constructor(private config: ChatBotConfig) { }
+    constructor(private config: ChatBotConfig) { };
 
     async launch() {
         this.tokenDetails = await this.fetchAccessToken();
@@ -19,8 +18,8 @@ export class TwitchChatBot {
             this.buildConnectionConfig(
                 this.config.twitchChannel,
                 this.config.twitchUser,
-                this.tokenDetails.access_token)
-        );
+                this.tokenDetails.access_token
+        ));
         this.setupBotBehavior();
         this.twitchClient.connect();
     }
@@ -37,7 +36,6 @@ export class TwitchChatBot {
                 code: this.config.twitchAuthorizationCode,
                 grant_type: 'authorization_code',
                 redirect_uri: 'http://localhost'
-
             },
             responseType: 'json'
         }).then(async function (response: any) {
@@ -61,22 +59,26 @@ export class TwitchChatBot {
         })
     }
 
-    refreshTokenIfNeeded() {
-        //TODO if needed - twitch apparently only requires the token on login so it is good enough for now to just get a token on start-up.
-    }
-
     private setupBotBehavior() {
         this.twitchClient.on('message', (channel: any, tags: any, message: any, self: any) => {
-            let helloCommand = "!hello"
+            if (self || !message.startsWith('!')) return;
 
-            //! means a command is coming by, and we check if it matches the command we currently support
-            if (message.startsWith('!') && message === helloCommand)
-                this.sayHelloToUser(channel,tags);
+            // message: "!taunt 1 2 3" 
+            const command = message.split(' ').toLowerCase(); // command: "!taunt"
+            const args = message.split(' ').slice(1);         // args: [ "1", "2", "3" ]
+
+            switch (command) {
+                case "!taunt":
+                    this.sayTauntToUser(channel, args);
+                    break;
+            }
         });
     }
 
-    private sayHelloToUser(channel: any, tags: any) {
-            this.twitchClient.say(channel, `Hello, ${ tags.username }! Welcome to the channel.`);
+    private sayTauntToUser(channel: any, args: any) {
+        const taunts = require('./taunts.json');
+        const taunt = taunts[args[0]] || "Taunt not found";
+        this.twitchClient.say(channel, taunt); // args[0]: 58 -> "Prepare to send me all your resources so I can vanquish our foes!"
     }
 
     private buildConnectionConfig(channel: string, username: string, accessToken: string) {
@@ -94,5 +96,3 @@ export class TwitchChatBot {
         };
     }
 }
-
-
