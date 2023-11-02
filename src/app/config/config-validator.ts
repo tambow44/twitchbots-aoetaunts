@@ -1,37 +1,34 @@
-import { InvalidTwitchConfigError } from './../models/error.model';
+import { TwitchTokenDetails } from './../models/twitchTokenDetails.models';
 import { validate } from "class-validator";
-import { ChatBotConfig } from "./config.model"
+import { InvalidTwitchResponseError } from '../models/error.model';
+export class TwitchTokenResponseValidator {
 
-
-export class ConfigValidator {
-
-    public static async readConfig(configPath: string): Promise<ChatBotConfig> {
-        var configJson = JSON.parse(require('fs').readFileSync(configPath))
+    public static async parseResponse(responseBody: string): Promise<TwitchTokenDetails> {
+        var tokenResponse = JSON.parse(JSON.stringify(responseBody));
 
         try {
-            console.info("Validating Config...")
+            console.info("Validating Twitch Response");
 
-            let completeConfig = new ChatBotConfig(
-                configJson.twitch.token_endpoint,
-                configJson.twitch.username,
-                configJson.twitch.client_id,
-                configJson.twitch.client_secret,
-                configJson.twitch.authorization_code,
-                configJson.twitch.channel
-            )
-            let completeConfigErrors = await validate(completeConfig);
+            let tokenDetails = new TwitchTokenDetails(
+                tokenResponse.access_token,
+                tokenResponse.refresh_token,
+                tokenResponse.expires_in,
+                tokenResponse.scope,
+                tokenResponse.token_type
+            );
+            let completeConfigErrors = await validate(tokenDetails);
 
             if (completeConfigErrors.length > 0)
-                throw new InvalidTwitchConfigError(`The provided mothership config is not valid, here are the issues: ${completeConfigErrors.join()}`)
+                throw new InvalidTwitchResponseError(`The answer from twitch token endpoint is not valid, 
+                here are the issues: ${completeConfigErrors.join()}`);
 
-            console.info("Config is valid.")
-            return completeConfig;
+            console.info("Twitch Response is valid.");
+            return tokenDetails;
 
-        } catch (err: unknown) {
-            if (err instanceof InvalidTwitchConfigError)
-                console.log(err.message)    
-            throw err
-                
+        } catch (error: unknown) {
+            if (error instanceof InvalidTwitchResponseError)
+                console.log(error.message);
+            throw error;
         }
     }
 }
