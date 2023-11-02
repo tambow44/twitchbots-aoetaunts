@@ -1,8 +1,8 @@
 {
-  "name": "twitch-chatbot",
+  "name": "twitchbots-aoetaunts",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Twitch Chatbot which replies with an Age of Empires 2 DE Taunt",
+  "main": "./dist/app.js",
   "scripts": {
     "start": "tsc && node ./dist/app.js"
   },
