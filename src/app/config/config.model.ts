@@ -1,8 +1,6 @@
-
 import { IsNotEmpty, IsString } from "class-validator";
 
 export class ChatBotConfig {
-
     @IsNotEmpty()
     @IsString()
     public twitchTokenEndpoint: string;
@@ -26,7 +24,6 @@ export class ChatBotConfig {
     @IsNotEmpty()
     @IsString()
     public twitchChannel: string;
-
 
     constructor(
         twitchTokenEndpoint: string,
